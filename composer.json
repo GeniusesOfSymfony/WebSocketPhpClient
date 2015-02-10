@@ -19,5 +19,10 @@
 	},
 	"autoload": {
 	  "psr-4": { "Gos\\Component\\WebSocketClient\\": "" }
+	},
+	"extra": {
+		"branch-alias": {
+		  	"dev-master": "0.1.x-dev"
+		}
 	}
 }
