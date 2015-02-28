@@ -177,6 +177,20 @@ class WebsocketPayload
         return $payload;
     }
 
+    public static function generateClosePayload()
+    {
+        $status = 1000;
+        $message = 'ttfn';
+        $bin = sprintf('%016b', $status);
+        $str = '';
+
+        foreach (str_split($bin, 8) as $binstr) {
+            $str .= chr(bindec($binstr));
+        }
+
+        return $str . $message;
+    }
+
     public function maskData($data, $key)
     {
         $masked = '';

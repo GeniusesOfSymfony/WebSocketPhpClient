@@ -4,9 +4,10 @@ namespace Gos\Component\WebSocketClient\Wamp;
 
 use Gos\Component\WebSocketClient\Exception\BadResponseException;
 use Gos\Component\WebSocketClient\Exception\WebsocketException;
+use Psr\Log\LoggerInterface;
 
 /**
- * WS Client
+ * WS Client.
  *
  * @author Martin Bažík <martin@bazo.sk>
  * @author Johann Saunier <johann_27@hotmail.fr>
@@ -31,31 +32,76 @@ class Client
     /** @var string */
     protected $sessionId;
 
+    /** @var string */
+    protected $origin;
+
+    /** @var LoggerInterface */
+    protected $logger;
+
+    /** @var bool */
+    protected $closing;
+
+    /** @var  bool */
+    protected $secured;
+
     /**
-     * @param string $endpoint
+     * @param string     $host
+     * @param int|string $port
+     * @param bool       $secured
+     * @param string     $origin
      */
-    public function __construct($endpoint)
+    public function __construct($host, $port, $secured = false, $origin = null)
     {
-        $this->endpoint = $endpoint;
-        $this->parseUrl();
+        $this->serverHost = $host;
         $this->connected = false;
-        $this->serverPort = 80;
+        $this->closing = false;
+        $this->secured = $secured;
+        $this->serverPort = $port;
+
+        if (null === $origin) {
+            $origin = $host;
+        }
+
+        $this->origin = $origin;
+
+        $protocol = (true === $this->secured ? 'ssl' : 'tcp');
+
+        $this->endpoint = sprintf(
+            '%s://%s:%s',
+            $protocol,
+            $host,
+            $port
+        );
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     */
+    public function setLogger(LoggerInterface $logger = null)
+    {
+        $this->logger = $logger;
+    }
+
+    public function setAuthenticationToken()
+    {
+        /* @todo  **/
     }
 
     /**
      * @param string $target
      *
      * @return string
+     *
      * @throws BadResponseException
      * @throws WebsocketException
      */
-    public function connect($target = '/websocket/')
+    public function connect($target = '/')
     {
         if ($this->connected) {
             return $this->sessionId;
         }
 
-        $this->socket = stream_socket_client($this->serverHost . ':' . $this->serverPort, $errno, $errstr);
+        $this->socket = stream_socket_client($this->endpoint, $errno, $errstr);
 
         if (!$this->socket) {
             throw new BadResponseException('Could not open socket. Reason: ' . $errstr);
@@ -72,6 +118,8 @@ class Client
         }
 
         $this->sessionId = $payload[1];
+
+        $this->connected = true;
 
         return $this->sessionId;
     }
@@ -91,13 +139,22 @@ class Client
             throw new WebsocketException('Wamp Server Target is wrong.');
         }
 
-        $out = "GET " . $target . " HTTP/1.1\r\n";
-        $out .= "Host: {$this->serverHost} \r\n";
+        $protocol = true === $this->secured ? 'wss' : 'ws';
+
+        $out = "GET {$protocol}://{$this->serverHost}:{$this->serverPort}{$target} HTTP/1.1\r\n";
+        $out .= "Host: {$this->serverHost}:{$this->serverPort}\r\n";
+        $out .= "Pragma: no-cache\r\n";
+        $out .= "Cache-Control: no-cache\r\n";
         $out .= "Upgrade: WebSocket\r\n";
         $out .= "Connection: Upgrade\r\n";
-        $out .= "Sec-WebSocket-Key: $key \r\n";
+        $out .= "Sec-WebSocket-Key: $key\r\n";
+        $out .= "Sec-WebSocket-Protocol: wamp\r\n";
+
+        //@todo support auth
+//        $out .= "Cookie: PHPSESSID=2okar2mng0mklk62iutc0bert0\r\n";
+
         $out .= "Sec-WebSocket-Version: 13\r\n";
-        $out .= "Origin: *\r\n\r\n";
+        $out .= "Origin: {$this->origin}\r\n\r\n";
 
         fwrite($this->socket, $out);
 
@@ -123,9 +180,10 @@ class Client
     }
 
     /**
-     * Read the buffer and return the oldest event in stack
+     * Read the buffer and return the oldest event in stack.
      *
      * @see https://tools.ietf.org/html/rfc6455#section-5.2
+     *
      * @return string
      */
     protected function read()
@@ -150,14 +208,36 @@ class Client
     }
 
     /**
-     * Disconnect
+     * Disconnect.
      *
      * @return boolean
      */
     public function disconnect()
     {
+        if (false === $this->connected) {
+            return true;
+        }
+
         if ($this->socket) {
+            $this->send(WebsocketPayload::generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
+            $this->closing = true;
+
+            $payloadLength = ord(fread($this->socket, 1));
+            $payload = fread($this->socket, $payloadLength);
+
+            if ($payloadLength >= 2) {
+                $bin = $payload[0] . $payload[1];
+                $status = bindec(sprintf("%08b%08b", ord($payload[0]), ord($payload[1])));
+            }
+
+            if ($this->closing) {
+                $this->closing = false;
+            } else {
+                $this->send($bin . 'Close acknowledged: ' . $status, WebsocketPayload::OPCODE_CLOSE);
+            }
+
             fclose($this->socket);
+            $this->connected = false;
 
             return true;
         }
@@ -166,19 +246,21 @@ class Client
     }
 
     /**
-     * Send message to the websocket
+     * Send message to the websocket.
      *
      * @access private
-     * @param  array        $data
+     *
+     * @param array $data
+     *
      * @return $this|Client
      */
-    protected function send($data)
+    protected function send($data, $opcode = WebsocketPayload::OPCODE_TEXT, $masked = true)
     {
         $rawMessage = json_encode($data);
         $payload = new WebsocketPayload();
         $payload
-            ->setOpcode(WebsocketPayload::OPCODE_TEXT)
-            ->setMask(true)
+            ->setOpcode($opcode)
+            ->setMask($masked)
             ->setPayload($rawMessage);
 
         $encoded = $payload->encodePayload();
@@ -188,8 +270,10 @@ class Client
     }
 
     /**
-     * Establish a prefix on server
+     * Establish a prefix on server.
+     *
      * @see http://wamp.ws/spec#prefix_message
+     *
      * @param string $prefix
      * @param string $uri
      */
@@ -201,8 +285,10 @@ class Client
     }
 
     /**
-     * Call a procedure on server
+     * Call a procedure on server.
+     *
      * @see http://wamp.ws/spec#call_message
+     *
      * @param string $procURI
      * @param mixed  $arguments
      */
@@ -218,8 +304,10 @@ class Client
     }
 
     /**
-     * The client will send an event to all clients connected to the server who have subscribed to the topicURI
+     * The client will send an event to all clients connected to the server who have subscribed to the topicURI.
+     *
      * @see http://wamp.ws/spec#publish_message
+     *
      * @param string $topicUri
      * @param string $payload
      * @param string $exclude
@@ -227,13 +315,20 @@ class Client
      */
     public function publish($topicUri, $payload, $exclude = [], $eligible = [])
     {
-        $type = Protocol::MSG_PUBLISH;
-        $data = array($type, $topicUri, $payload, $exclude, $eligible);
+        if (null !== $this->logger) {
+            $this->logger->info(sprintf(
+                'Publish in %s',
+                $topicUri
+            ));
+        }
+
+        $data = array(Protocol::MSG_PUBLISH, $topicUri, $payload, $exclude, $eligible);
         $this->send($data);
     }
 
     /**
      * Subscribers receive PubSub events published by subscribers via the EVENT message. The EVENT message contains the topicURI, the topic under which the event was published, and event, the PubSub event payload.
+     *
      * @param string $topicUri
      * @param string $payload
      */
@@ -259,28 +354,5 @@ class Client
         }
 
         return base64_encode(substr($tmp, 0, $length));
-    }
-
-    /**
-     * Parse the url and set server parameters
-     *
-     * @access private
-     * @return bool
-     */
-    protected function parseUrl()
-    {
-        $url = parse_url($this->endpoint);
-
-        $this->serverHost = $url['host'];
-        $this->serverPort = isset($url['port']) ? $url['port'] : null;
-
-        if (array_key_exists('scheme', $url) && $url['scheme'] == 'https') {
-            $this->serverHost = 'ssl://' . $this->serverHost;
-            if (!$this->serverPort) {
-                $this->serverPort = 443;
-            }
-        }
-
-        return true;
     }
 }

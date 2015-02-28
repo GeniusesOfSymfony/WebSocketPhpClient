@@ -3,7 +3,7 @@
 namespace Gos\Component\WebSocketClient\Wamp;
 
 /**
- * Description of Protocol
+ * Description of Protocol.
  *
  * @author Martin Bažík <martin@bazo.sk>
  * @author Johann Saunier <johann_27@hotmail.fr>
