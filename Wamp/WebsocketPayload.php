@@ -195,7 +195,7 @@ class WebsocketPayload
     {
         $masked = '';
 
-        for ($i = 0; $i < strlen($data); $i++) {
+        for ($i = 0; $i < strlen($data); ++$i) {
             $masked .= $data[$i] ^ $key[$i % 4];
         }
 

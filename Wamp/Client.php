@@ -44,6 +44,9 @@ class Client
     /** @var  bool */
     protected $secured;
 
+    /** @var  string */
+    protected $target;
+
     /**
      * @param string     $host
      * @param int|string $port
@@ -97,17 +100,19 @@ class Client
      */
     public function connect($target = '/')
     {
+        $this->target = $target;
+
         if ($this->connected) {
             return $this->sessionId;
         }
 
-        $this->socket = stream_socket_client($this->endpoint, $errno, $errstr);
+        $this->socket = @stream_socket_client($this->endpoint, $errno, $errstr);
 
         if (!$this->socket) {
             throw new BadResponseException('Could not open socket. Reason: ' . $errstr);
         }
 
-        $response = $this->upgradeProtocol($target);
+        $response = $this->upgradeProtocol($this->target);
 
         $this->verifyResponse($response);
 
@@ -196,7 +201,7 @@ class Client
 
         switch ($payloadLength) {
             case 126:
-                $payloadLength = unpack("n", fread($this->socket, 2));
+                $payloadLength = unpack('n', fread($this->socket, 2));
                 $payloadLength = $payloadLength[1];
                 break;
             case 127:
@@ -210,7 +215,7 @@ class Client
     /**
      * Disconnect.
      *
-     * @return boolean
+     * @return bool
      */
     public function disconnect()
     {
@@ -225,15 +230,15 @@ class Client
             $payloadLength = ord(fread($this->socket, 1));
             $payload = fread($this->socket, $payloadLength);
 
-            if ($payloadLength >= 2) {
-                $bin = $payload[0] . $payload[1];
-                $status = bindec(sprintf("%08b%08b", ord($payload[0]), ord($payload[1])));
-            }
-
             if ($this->closing) {
                 $this->closing = false;
             } else {
-                $this->send($bin . 'Close acknowledged: ' . $status, WebsocketPayload::OPCODE_CLOSE);
+                if ($payloadLength >= 2) {
+                    $bin = $payload[0] . $payload[1];
+                    $status = bindec(sprintf('%08b%08b', ord($payload[0]), ord($payload[1])));
+
+                    $this->send($bin . 'Close acknowledged: ' . $status, WebsocketPayload::OPCODE_CLOSE);
+                }
             }
 
             fclose($this->socket);
@@ -248,7 +253,6 @@ class Client
     /**
      * Send message to the websocket.
      *
-     * @access private
      *
      * @param array $data
      *
@@ -264,7 +268,13 @@ class Client
             ->setPayload($rawMessage);
 
         $encoded = $payload->encodePayload();
-        fwrite($this->socket, $encoded);
+
+        if (0 === @fwrite($this->socket, $encoded)) { //connection reseted by peers, just reconnect.
+            $this->connected = false;
+            $this->connect($this->target);
+
+            fwrite($this->socket, $encoded);
+        }
 
         return $this;
     }
@@ -297,7 +307,7 @@ class Client
         $args = func_get_args();
         array_shift($args);
         $type = Protocol::MSG_CALL;
-        $callId = uniqid("", $moreEntropy = true);
+        $callId = uniqid('', $moreEntropy = true);
         $data = array_merge(array($type, $callId, $procUri), $args);
 
         $this->send($data);
