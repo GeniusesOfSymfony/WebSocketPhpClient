@@ -14,7 +14,7 @@ Supported functions:
 ```php
 use Gos\Component\WebSocketClient\Wamp\Client;
 
-$client = new Client('http://localhost:8080');
+$client = new Client($host, $port);
 $sessionId = $client->connect();
 
 //establish a prefix on server
