@@ -73,7 +73,7 @@ class Client
             '%s://%s:%s',
             $protocol,
             $host,
-            $portbo
+            $port
         );
     }
 
