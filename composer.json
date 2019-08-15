@@ -20,7 +20,7 @@
 		"psr/log": "^1.0"
 	},
 	"autoload": {
-		"psr-4": { "Gos\\Component\\WebSocketClient\\": "" }
+		"psr-4": { "Gos\\Component\\WebSocketClient\\": "src/" }
 	},
 	"extra": {
 		"branch-alias": {
