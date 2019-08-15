@@ -29,7 +29,7 @@ class Client implements LoggerAwareInterface
     /** @var resource */
     protected $socket;
 
-    /** @var bool  */
+    /** @var bool */
     protected $connected;
 
     /** @var string */
@@ -41,10 +41,10 @@ class Client implements LoggerAwareInterface
     /** @var bool */
     protected $closing;
 
-    /** @var  bool */
+    /** @var bool */
     protected $secured;
 
-    /** @var  string */
+    /** @var string */
     protected $target;
 
     /**
@@ -101,7 +101,7 @@ class Client implements LoggerAwareInterface
         $this->socket = @stream_socket_client($this->endpoint, $errno, $errstr);
 
         if (!$this->socket) {
-            throw new BadResponseException('Could not open socket. Reason: ' . $errstr);
+            throw new BadResponseException('Could not open socket. Reason: '.$errstr);
         }
 
         $response = $this->upgradeProtocol($this->target);
@@ -110,7 +110,7 @@ class Client implements LoggerAwareInterface
 
         $payload = json_decode($this->read());
 
-        if ($payload[0] != Protocol::MSG_WELCOME) {
+        if (Protocol::MSG_WELCOME != $payload[0]) {
             throw new BadResponseException('WAMP Server did not send welcome message.');
         }
 
@@ -171,8 +171,8 @@ class Client implements LoggerAwareInterface
 
         $subres = substr($response, 0, 12);
 
-        if ($subres != 'HTTP/1.1 101') {
-            throw new BadResponseException('Unexpected Response. Expected HTTP/1.1 101 got ' . $subres);
+        if ('HTTP/1.1 101' != $subres) {
+            throw new BadResponseException('Unexpected Response. Expected HTTP/1.1 101 got '.$subres);
         }
     }
 
@@ -189,7 +189,7 @@ class Client implements LoggerAwareInterface
         fread($this->socket, 1);
 
         // There is also masking bit, as MSB, bit it's 0
-        $payloadLength = ord(fread($this->socket, 1));
+        $payloadLength = \ord(fread($this->socket, 1));
 
         switch ($payloadLength) {
             case 126:
@@ -219,17 +219,17 @@ class Client implements LoggerAwareInterface
             $this->send(WebsocketPayload::generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
             $this->closing = true;
 
-            $payloadLength = ord(fread($this->socket, 1));
+            $payloadLength = \ord(fread($this->socket, 1));
             $payload = fread($this->socket, $payloadLength);
 
             if ($this->closing) {
                 $this->closing = false;
             } else {
                 if ($payloadLength >= 2) {
-                    $bin = $payload[0] . $payload[1];
-                    $status = bindec(sprintf('%08b%08b', ord($payload[0]), ord($payload[1])));
+                    $bin = $payload[0].$payload[1];
+                    $status = bindec(sprintf('%08b%08b', \ord($payload[0]), \ord($payload[1])));
 
-                    $this->send($bin . 'Close acknowledged: ' . $status, WebsocketPayload::OPCODE_CLOSE);
+                    $this->send($bin.'Close acknowledged: '.$status, WebsocketPayload::OPCODE_CLOSE);
                 }
             }
 
@@ -296,11 +296,11 @@ class Client implements LoggerAwareInterface
      */
     public function call($procUri, $arguments = [])
     {
-        $args = func_get_args();
+        $args = \func_get_args();
         array_shift($args);
         $type = Protocol::MSG_CALL;
         $callId = uniqid('', $moreEntropy = true);
-        $data = array_merge(array($type, $callId, $procUri), $args);
+        $data = array_merge([$type, $callId, $procUri], $args);
 
         $this->send($data);
     }
@@ -324,7 +324,7 @@ class Client implements LoggerAwareInterface
             ));
         }
 
-        $data = array(Protocol::MSG_PUBLISH, $topicUri, $payload, $exclude, $eligible);
+        $data = [Protocol::MSG_PUBLISH, $topicUri, $payload, $exclude, $eligible];
         $this->send($data);
     }
 
@@ -337,7 +337,7 @@ class Client implements LoggerAwareInterface
     public function event($topicUri, $payload)
     {
         $type = Protocol::MSG_EVENT;
-        $data = array($type, $topicUri, $payload);
+        $data = [$type, $topicUri, $payload];
         $this->send($data);
     }
 
@@ -357,7 +357,7 @@ class Client implements LoggerAwareInterface
 
         return base64_encode(substr($tmp, 0, $length));
     }
-    
+
     /**
      * @return bool
      */

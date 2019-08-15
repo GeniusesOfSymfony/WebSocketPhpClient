@@ -94,7 +94,7 @@ class WebsocketPayload
     {
         $this->mask = $mask;
 
-        if ($this->mask == true) {
+        if (true == $this->mask) {
             $this->generateMaskKey();
         }
 
@@ -108,7 +108,7 @@ class WebsocketPayload
 
     public function getLength()
     {
-        return strlen($this->getPayload());
+        return \strlen($this->getPayload());
     }
 
     public function setMaskKey($maskKey)
@@ -155,24 +155,24 @@ class WebsocketPayload
             $payload = pack('n', $payload);
         } elseif ($this->getLength() <= 0xffff) {
             $payload = (($payload) << 7) | 126;
-            $payload = pack('n', $payload) . pack('n*', $this->getLength());
+            $payload = pack('n', $payload).pack('n*', $this->getLength());
         } else {
             $payload = (($payload) << 7) | 127;
             $left = 0xffffffff00000000;
             $right = 0x00000000ffffffff;
             $l = ($this->getLength() & $left) >> 32;
             $r = $this->getLength() & $right;
-            $payload = pack('n', $payload) . pack('NN', $l, $r);
+            $payload = pack('n', $payload).pack('NN', $l, $r);
         }
 
-        if ($this->getMask() == 0x1) {
+        if (0x1 == $this->getMask()) {
             $payload .= $this->getMaskKey();
             $data = $this->maskData($this->getPayload(), $this->getMaskKey());
         } else {
             $data = $this->getPayload();
         }
 
-        $payload = $payload . $data;
+        $payload = $payload.$data;
 
         return $payload;
     }
@@ -185,17 +185,17 @@ class WebsocketPayload
         $str = '';
 
         foreach (str_split($bin, 8) as $binstr) {
-            $str .= chr(bindec($binstr));
+            $str .= \chr(bindec($binstr));
         }
 
-        return $str . $message;
+        return $str.$message;
     }
 
     public function maskData($data, $key)
     {
         $masked = '';
 
-        for ($i = 0; $i < strlen($data); ++$i) {
+        for ($i = 0; $i < \strlen($data); ++$i) {
             $masked .= $data[$i] ^ $key[$i % 4];
         }
 
