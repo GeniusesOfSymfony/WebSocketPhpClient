@@ -137,7 +137,7 @@ class WebsocketPayload
 
     public function generateMaskKey()
     {
-        $this->setMaskKey($key = openssl_random_pseudo_bytes(4));
+        $this->setMaskKey($key = random_bytes(4));
 
         return $key;
     }
