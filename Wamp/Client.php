@@ -4,7 +4,8 @@ namespace Gos\Component\WebSocketClient\Wamp;
 
 use Gos\Component\WebSocketClient\Exception\BadResponseException;
 use Gos\Component\WebSocketClient\Exception\WebsocketException;
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
 /**
  * WS Client.
@@ -12,8 +13,10 @@ use Psr\Log\LoggerInterface;
  * @author Martin Bažík <martin@bazo.sk>
  * @author Johann Saunier <johann_27@hotmail.fr>
  */
-class Client
+class Client implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     /** @var string */
     protected $endpoint;
 
@@ -34,9 +37,6 @@ class Client
 
     /** @var string */
     protected $origin;
-
-    /** @var LoggerInterface */
-    protected $logger;
 
     /** @var bool */
     protected $closing;
@@ -75,14 +75,6 @@ class Client
             $host,
             $port
         );
-    }
-
-    /**
-     * @param LoggerInterface $logger
-     */
-    public function setLogger(LoggerInterface $logger = null)
-    {
-        $this->logger = $logger;
     }
 
     public function setAuthenticationToken()
