@@ -77,11 +77,6 @@ class Client implements LoggerAwareInterface
         );
     }
 
-    public function setAuthenticationToken()
-    {
-        /* @todo  **/
-    }
-
     /**
      * @param string $target
      *
@@ -146,10 +141,6 @@ class Client implements LoggerAwareInterface
         $out .= "Connection: Upgrade\r\n";
         $out .= "Sec-WebSocket-Key: $key\r\n";
         $out .= "Sec-WebSocket-Protocol: wamp\r\n";
-
-        //@todo support auth
-//        $out .= "Cookie: PHPSESSID=2okar2mng0mklk62iutc0bert0\r\n";
-
         $out .= "Sec-WebSocket-Version: 13\r\n";
         $out .= "Origin: {$this->origin}\r\n\r\n";
 
