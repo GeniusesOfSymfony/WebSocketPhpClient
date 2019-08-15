@@ -10,15 +10,17 @@
 			"email": "martin@bazo.sk"
 		},
 		{
-		  "name": "Johann Saunier",
-		  "email": "johann_27@hotmail.fr"
+			"name": "Johann Saunier",
+			"email": "johann_27@hotmail.fr"
 		}
 	],
 	"require": {
-		"php": "^7.2"
+		"php": ">=7.2",
+		"ext-json": "*",
+		"psr/log": "^1.0"
 	},
 	"autoload": {
-	  "psr-4": { "Gos\\Component\\WebSocketClient\\": "" }
+		"psr-4": { "Gos\\Component\\WebSocketClient\\": "" }
 	},
 	"extra": {
 		"branch-alias": {
