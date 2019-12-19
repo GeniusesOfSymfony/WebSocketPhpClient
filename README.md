@@ -2,7 +2,7 @@
 
 ## About
 
-This library has been tested with Ratchet WAMP server. It can only send messages to the server, listening for replies is not implemented.
+This library has been tested with Ratchet WAMP server. It is based on the original WebSocketPhpClient and works with v2.0.0 of the GOS/Web-Socket-Bundle. It can only send messages to the server, listening for replies is not implemented.
 Supported functions:
  - prefix
  - call
