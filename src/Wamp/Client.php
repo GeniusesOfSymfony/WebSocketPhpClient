@@ -176,23 +176,19 @@ class Client implements LoggerAwareInterface
      */
     protected function read()
     {
-        // Ignore first byte
-        fread($this->socket, 1);
+        $stream = $this->socket;
 
-        // There is also masking bit, as MSB, bit it's 0
-        $payloadLength = \ord(fread($this->socket, 1));
+        $stream_meta_data =  stream_get_meta_data($stream);
 
-        switch ($payloadLength) {
-            case 126:
-                $payloadLength = unpack('n', fread($this->socket, 2));
-                $payloadLength = $payloadLength[1];
-                break;
-            case 127:
-                //$this->stdout('error', "Next 8 bytes are 64bit uint payload length, not yet implemented, since PHP can't handle 64bit longs!");
-                break;
-        }
+        $max_length = $stream_meta_data['unread_bytes'];
 
-        return fread($this->socket, $payloadLength);
+        $stream_data_string = stream_get_contents($stream, $max_length);
+
+        $startPos = strpos($stream_data_string, '[');
+
+        $endPos = strpos($stream_data_string, ']');
+
+        return substr($stream_data_string, $startPos, $endPos);
     }
 
     /**
