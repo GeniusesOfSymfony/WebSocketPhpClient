@@ -178,7 +178,7 @@ class Client implements LoggerAwareInterface
     {
         $stream = $this->socket;
 
-        $stream_meta_data =  stream_get_meta_data($stream);
+        $stream_meta_data = stream_get_meta_data($stream);
 
         $max_length = $stream_meta_data['unread_bytes'];
 
@@ -231,7 +231,6 @@ class Client implements LoggerAwareInterface
 
     /**
      * Send message to the websocket.
-     *
      *
      * @param array $data
      *
