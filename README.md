@@ -2,7 +2,8 @@
 
 ## About
 
-This library has been tested with Ratchet WAMP server. It is based on the original WebSocketPhpClient and works with v2.0.0 of the GOS/Web-Socket-Bundle. It can only send messages to the server, listening for replies is not implemented.
+This package provides a PHP client that can send messages to a websocket server utilizing the WAMPv1 protocol. Listening for replies is not supported at this time.
+
 Supported functions:
  - prefix
  - call
@@ -14,28 +15,28 @@ Supported functions:
 ```php
 use Gos\Component\WebSocketClient\Wamp\Client;
 
-$client = new Client($host, $port);
+$client = new Client('127.0.0.1', '8080');
 $sessionId = $client->connect();
 
-//establish a prefix on server
+// Establish a prefix on server
 $client->prefix("calc", "http://example.com/simple/calc#");
 
-//you can send arbitrary number of arguments
-$client->call('calc', 12,14,15);
+// You can send an arbitrary number of arguments
+$client->call('calc', 12, 14, 15);
 
 $data = [0, 1, 2];
 
-//or array
+// Or an array
 $client->call('calc', $data);
 
-$exclude = array($sessionId); //no sense in sending the payload to ourselves
-$eligible = [...] //list of other clients ids that are eligible to receive this payload
+$exclude = [$sessionId]; // No sense in sending the payload to ourselves
+$eligible = []; // List of other clients ids that are eligible to receive this payload
 
-//$payload can be scalar or array
-$client->publish('topic', $payload, $exclude, $eligible);
+// $payload can be scalar or array
+$client->publish('topic', [], $exclude, $eligible);
 
-//publish an event
-$client->event('topic', $payload);
+// Publish an event
+$client->event('topic', []);
 $client->disconnect();
 ```
 
