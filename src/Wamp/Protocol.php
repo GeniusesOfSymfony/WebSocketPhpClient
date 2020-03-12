@@ -10,13 +10,13 @@ namespace Gos\Component\WebSocketClient\Wamp;
  */
 abstract class Protocol
 {
-    const MSG_WELCOME = 0;
-    const MSG_PREFIX = 1;
-    const MSG_CALL = 2;
-    const MSG_CALL_RESULT = 3;
-    const MSG_CALL_ERROR = 4;
-    const MSG_SUBSCRIBE = 5;
-    const MSG_UNSUBSCRIBE = 6;
-    const MSG_PUBLISH = 7;
-    const MSG_EVENT = 8;
+    public const MSG_WELCOME = 0;
+    public const MSG_PREFIX = 1;
+    public const MSG_CALL = 2;
+    public const MSG_CALL_RESULT = 3;
+    public const MSG_CALL_ERROR = 4;
+    public const MSG_SUBSCRIBE = 5;
+    public const MSG_UNSUBSCRIBE = 6;
+    public const MSG_PUBLISH = 7;
+    public const MSG_EVENT = 8;
 }
