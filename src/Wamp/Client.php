@@ -61,12 +61,18 @@ final class Client implements ClientInterface, LoggerAwareInterface
      */
     private $origin;
 
-    public function __construct(string $host, int $port, bool $secured = false, ?string $origin = null)
+    /**
+     * @var PayloadGeneratorInterface
+     */
+    private $payloadGenerator;
+
+    public function __construct(string $host, int $port, bool $secured = false, ?string $origin = null, ?PayloadGeneratorInterface $payloadGenerator = null)
     {
         $this->serverHost = $host;
         $this->serverPort = $port;
         $this->secured = $secured;
         $this->origin = null !== $origin ? $origin : $host;
+        $this->payloadGenerator = $payloadGenerator ?: new PayloadGenerator();
 
         $this->endpoint = sprintf(
             '%s://%s:%s',
@@ -205,7 +211,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
             return true;
         }
 
-        $this->send((new WebsocketPayload())->generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
+        $this->send($this->payloadGenerator->generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
 
         $firstByte = fread($this->socket, 1);
 
@@ -248,11 +254,12 @@ final class Client implements ClientInterface, LoggerAwareInterface
             throw new WebsocketException('The data could not be encoded: '.json_last_error_msg());
         }
 
-        $encoded = (new WebsocketPayload())
-            ->setOpcode($opcode)
-            ->setMask($mask)
-            ->setPayload($payload)
-            ->encodePayload();
+        $encoded = $this->payloadGenerator->encode(
+            (new WebsocketPayload())
+                ->setOpcode($opcode)
+                ->setMask($mask)
+                ->setPayload($payload)
+        );
 
         // Check if the connection was reset, if so try to reconnect
         if (0 === @fwrite($this->socket, $encoded)) {
