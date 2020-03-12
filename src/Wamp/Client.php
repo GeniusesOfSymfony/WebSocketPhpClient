@@ -205,7 +205,7 @@ class Client implements LoggerAwareInterface
             return true;
         }
 
-        $this->send(WebsocketPayload::generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
+        $this->send((new WebsocketPayload())->generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
 
         $firstByte = fread($this->socket, 1);
 

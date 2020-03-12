@@ -208,7 +208,7 @@ final class WebsocketPayload
         return $payload.$data;
     }
 
-    public static function generateClosePayload(): string
+    public function generateClosePayload(): string
     {
         $status = 1000;
         $message = 'ttfn';
