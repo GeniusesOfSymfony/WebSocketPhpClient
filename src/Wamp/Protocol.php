@@ -2,13 +2,7 @@
 
 namespace Gos\Component\WebSocketClient\Wamp;
 
-/**
- * Description of Protocol.
- *
- * @author Martin Bažík <martin@bazo.sk>
- * @author Johann Saunier <johann_27@hotmail.fr>
- */
-abstract class Protocol
+final class Protocol
 {
     public const MSG_WELCOME = 0;
     public const MSG_PREFIX = 1;
@@ -19,4 +13,8 @@ abstract class Protocol
     public const MSG_UNSUBSCRIBE = 6;
     public const MSG_PUBLISH = 7;
     public const MSG_EVENT = 8;
+
+    private function __construct()
+    {
+    }
 }
