@@ -7,59 +7,59 @@ use Gos\Component\WebSocketClient\Exception\WebsocketException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
-class Client implements LoggerAwareInterface
+final class Client implements ClientInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
     /**
      * @var bool
      */
-    protected $connected = false;
+    private $connected = false;
 
     /**
      * @var bool
      */
-    protected $closing = false;
+    private $closing = false;
 
     /**
      * @var string
      */
-    protected $endpoint;
+    private $endpoint;
 
     /**
      * @var string|null
      */
-    protected $target;
+    private $target;
 
     /**
      * @var resource|null
      */
-    protected $socket;
+    private $socket;
 
     /**
      * @var string|null
      */
-    protected $sessionId;
+    private $sessionId;
 
     /**
      * @var string
      */
-    protected $serverHost;
+    private $serverHost;
 
     /**
      * @var int
      */
-    protected $serverPort;
+    private $serverPort;
 
     /**
      * @var bool
      */
-    protected $secured = false;
+    private $secured = false;
 
     /**
      * @var string|null
      */
-    protected $origin;
+    private $origin;
 
     public function __construct(string $host, int $port, bool $secured = false, ?string $origin = null)
     {
@@ -119,7 +119,7 @@ class Client implements LoggerAwareInterface
      *
      * @throws WebsocketException if the target URI is invalid
      */
-    protected function upgradeProtocol(string $target)
+    private function upgradeProtocol(string $target)
     {
         $key = $this->generateKey();
 
@@ -150,7 +150,7 @@ class Client implements LoggerAwareInterface
      *
      * @throws BadResponseException if an invalid response was received
      */
-    protected function verifyResponse($response): void
+    private function verifyResponse($response): void
     {
         if (false === $response) {
             throw new BadResponseException('WAMP Server did not respond properly');
@@ -170,7 +170,7 @@ class Client implements LoggerAwareInterface
      *
      * @throws BadResponseException if the buffer could not be read
      */
-    protected function read(): string
+    private function read(): string
     {
         $streamBody = stream_get_contents($this->socket, stream_get_meta_data($this->socket)['unread_bytes']);
 
@@ -238,7 +238,7 @@ class Client implements LoggerAwareInterface
      *
      * @throws WebsocketException if the data cannot be encoded properly
      */
-    protected function send($data, int $opcode = WebsocketPayload::OPCODE_TEXT, bool $masked = true): void
+    private function send($data, int $opcode = WebsocketPayload::OPCODE_TEXT, bool $masked = true): void
     {
         $mask = $masked ? 0x1 : 0x0;
 
@@ -349,7 +349,7 @@ class Client implements LoggerAwareInterface
         $this->send([Protocol::MSG_EVENT, $topicUri, $payload]);
     }
 
-    protected function generateKey(int $length = 16): string
+    private function generateKey(int $length = 16): string
     {
         $c = 0;
         $tmp = '';
