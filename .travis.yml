@@ -1,0 +1,51 @@
+language: php
+
+dist: xenial
+
+env:
+  global:
+    - COMPOSER_FLAGS="--prefer-stable"
+    - COVERAGE="no"
+
+matrix:
+  include:
+    - php: 7.2
+    # Build ensuring minimum dependencies are valid
+    - php: 7.2
+      env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest"
+    - php: 7.3
+    - php: 7.4
+    - php: nightly
+  allow_failures:
+    - php: nightly
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+before_install:
+  - phpenv config-rm xdebug.ini || true
+  - |
+    if [ "x$COVERAGE" == "xyes" ]; then
+      pecl install pcov
+    fi
+  - travis_retry composer self-update
+
+install:
+  - composer remove --dev --no-update phpstan/*
+  - composer update $COMPOSER_FLAGS
+
+script:
+  - |
+    if [ "x$COVERAGE" == "xyes" ]; then
+       ./vendor/bin/phpunit --coverage-clover clover.xml
+    else
+       ./vendor/bin/phpunit
+    fi
+
+after_script:
+  - |
+    if [ "x$COVERAGE" == "xyes" ]; then
+      travis_retry wget https://github.com/scrutinizer-ci/ocular/releases/download/1.6.0/ocular.phar
+      travis_retry php ocular.phar code-coverage:upload --format=php-clover clover.xml
+    fi
