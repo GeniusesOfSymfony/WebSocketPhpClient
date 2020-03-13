@@ -28,7 +28,7 @@ final class ClientTest extends TestCase
     {
         $this->startServer();
 
-        $client = new Client('localhost', 19000, false);
+        $client = new Client('localhost', 9000, false);
         $this->assertNotEmpty($client->connect(), 'Opening a connection should return the session identifier');
         $this->assertTrue($client->disconnect());
     }
@@ -40,7 +40,7 @@ final class ClientTest extends TestCase
 
         $this->startServer();
 
-        (new Client('localhost', 19000, false))->connect('');
+        (new Client('localhost', 9000, false))->connect('');
     }
 
     public function testCannotOpenAConnectionWhenSocketConnectionCannotBeMade(): void
@@ -48,14 +48,14 @@ final class ClientTest extends TestCase
         $this->expectException(WebsocketException::class);
         $this->expectExceptionMessage('Could not open socket. Reason: Connection refused');
 
-        (new Client('localhost', 19000, false))->connect();
+        (new Client('localhost', 9000, false))->connect();
     }
 
     public function testCanEstablishAPrefixOnTheServer(): void
     {
         $this->startServer();
 
-        $client = new Client('localhost', 19000, false);
+        $client = new Client('localhost', 9000, false);
         $this->assertNotEmpty($client->connect(), 'Opening a connection should return the session identifier');
 
         $client->prefix('/echo', 'http://example.com/echo');
@@ -67,7 +67,7 @@ final class ClientTest extends TestCase
     {
         $this->startServer();
 
-        $client = new Client('localhost', 19000, false);
+        $client = new Client('localhost', 9000, false);
         $this->assertNotEmpty($client->connect(), 'Opening a connection should return the session identifier');
 
         $client->call('/echo', 'testing');
@@ -79,7 +79,7 @@ final class ClientTest extends TestCase
     {
         $this->startServer();
 
-        $client = new Client('localhost', 19000, false);
+        $client = new Client('localhost', 9000, false);
         $this->assertNotEmpty($client->connect(), 'Opening a connection should return the session identifier');
 
         $client->publish('/echo', json_encode(['message' => 'Testing']));
@@ -91,7 +91,7 @@ final class ClientTest extends TestCase
     {
         $this->startServer();
 
-        $client = new Client('localhost', 19000, false);
+        $client = new Client('localhost', 9000, false);
         $this->assertNotEmpty($client->connect(), 'Opening a connection should return the session identifier');
 
         $client->event('/echo', json_encode(['message' => 'Testing']));
