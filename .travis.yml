@@ -36,6 +36,7 @@ install:
   - composer update $COMPOSER_FLAGS
 
 script:
+  - netstat -tuln
   - |
     if [ "x$COVERAGE" == "xyes" ]; then
        ./vendor/bin/phpunit --coverage-clover clover.xml
