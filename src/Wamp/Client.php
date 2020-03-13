@@ -97,7 +97,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $socket = @stream_socket_client($this->endpoint, $errno, $errstr);
 
         if ($socket === false) {
-            throw new BadResponseException('Could not open socket. Reason: '.$errstr);
+            throw new BadResponseException('Could not open socket. Reason: '.$errstr, $errno);
         }
 
         $this->target = $target;
@@ -240,7 +240,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
     }
 
     /**
-     * @param array|string $data Any JSON encodable data
+     * @param mixed $data Any JSON encodable data
      *
      * @throws WebsocketException if the data cannot be encoded properly
      */
@@ -248,10 +248,16 @@ final class Client implements ClientInterface, LoggerAwareInterface
     {
         $mask = $masked ? 0x1 : 0x0;
 
-        $payload = json_encode($data);
+        if (is_array($data)) {
+            $payload = json_encode($data);
 
-        if ($payload === false) {
-            throw new WebsocketException('The data could not be encoded: '.json_last_error_msg());
+            if ($payload === false) {
+                throw new WebsocketException('The data could not be encoded: '.json_last_error_msg());
+            }
+        } elseif (is_scalar($data)) {
+            $payload = $data;
+        } else {
+            throw new WebsocketException('The data must be an array or a scalar value.');
         }
 
         $encoded = $this->payloadGenerator->encode(
