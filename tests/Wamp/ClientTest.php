@@ -15,7 +15,7 @@ final class ClientTest extends TestCase
 
     protected function tearDown(): void
     {
-        if ($this->server !== null) {
+        if (null !== $this->server) {
             proc_terminate($this->server, SIGKILL);
 
             sleep(1);
@@ -101,12 +101,12 @@ final class ClientTest extends TestCase
 
     private function startServer(): void
     {
-        $filename = realpath(dirname(__DIR__) . '/server.php');
+        $filename = realpath(\dirname(__DIR__).'/server.php');
 
         $pipes = [];
-        $server = proc_open('php ' . $filename, [], $pipes);
+        $server = proc_open('php '.$filename, [], $pipes);
 
-        if ($server === false) {
+        if (false === $server) {
             $this->fail('Could not start server');
         }
 

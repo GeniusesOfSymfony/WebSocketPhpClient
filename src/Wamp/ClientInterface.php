@@ -11,7 +11,7 @@ interface ClientInterface
      * @return string The session identifier for the connection
      *
      * @throws BadResponseException if a response could not be received from the websocket server
-     * @throws WebsocketException if the target URI is invalid
+     * @throws WebsocketException   if the target URI is invalid
      */
     public function connect(string $target = '/'): string;
 

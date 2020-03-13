@@ -86,7 +86,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
      * @return string The session identifier for the connection
      *
      * @throws BadResponseException if a response could not be received from the websocket server
-     * @throws WebsocketException if the target URI is invalid
+     * @throws WebsocketException   if the target URI is invalid
      */
     public function connect(string $target = '/'): string
     {
@@ -96,7 +96,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
 
         $socket = @stream_socket_client($this->endpoint, $errno, $errstr);
 
-        if ($socket === false) {
+        if (false === $socket) {
             throw new BadResponseException('Could not open socket. Reason: '.$errstr, $errno);
         }
 
@@ -107,7 +107,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
 
         $payload = json_decode($this->read());
 
-        if ($payload === false) {
+        if (false === $payload) {
             throw new BadResponseException('WAMP Server sent an invalid payload.');
         }
 
@@ -180,14 +180,14 @@ final class Client implements ClientInterface, LoggerAwareInterface
     {
         $streamBody = stream_get_contents($this->socket, stream_get_meta_data($this->socket)['unread_bytes']);
 
-        if ($streamBody === false) {
+        if (false === $streamBody) {
             throw new BadResponseException('The stream buffer could not be read.');
         }
 
         $startPos = strpos($streamBody, '[');
         $endPos = strpos($streamBody, ']');
 
-        if ($startPos === false || $endPos === false) {
+        if (false === $startPos || false === $endPos) {
             throw new BadResponseException('Could not extract response body from stream.');
         }
 
@@ -215,14 +215,14 @@ final class Client implements ClientInterface, LoggerAwareInterface
 
         $firstByte = fread($this->socket, 1);
 
-        if ($firstByte === false) {
+        if (false === $firstByte) {
             throw new WebsocketException('Could not extract the payload from the buffer.');
         }
 
         $payloadLength = \ord($firstByte);
         $payload = fread($this->socket, $payloadLength);
 
-        if ($payload === false) {
+        if (false === $payload) {
             throw new WebsocketException('Could not extract the payload from the buffer.');
         }
 
@@ -248,10 +248,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
     {
         $mask = $masked ? 0x1 : 0x0;
 
-        if (is_array($data)) {
+        if (\is_array($data)) {
             $payload = json_encode($data);
 
-            if ($payload === false) {
+            if (false === $payload) {
                 throw new WebsocketException('The data could not be encoded: '.json_last_error_msg());
             }
         } elseif (is_scalar($data)) {
@@ -299,7 +299,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
      */
     public function call(string $procUri, $args): void
     {
-        if (!is_array($args)) {
+        if (!\is_array($args)) {
             $args = \func_get_args();
             array_shift($args);
         }

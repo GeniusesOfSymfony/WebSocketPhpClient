@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
 use Ratchet\App;
 use Ratchet\ConnectionInterface;
@@ -10,8 +10,7 @@ use Ratchet\Wamp\WampServerInterface;
 $app = new App('localhost', 8000);
 $app->route(
     '/',
-    new class implements WampServerInterface
-    {
+    new class() implements WampServerInterface {
         public function onOpen(ConnectionInterface $conn)
         {
         }
