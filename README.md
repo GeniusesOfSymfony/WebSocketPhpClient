@@ -1,7 +1,7 @@
 WebSocketPhpClient
 ==================
 
-[![Latest Stable Version](https://poser.pugx.org/gos/websocket-client/v/stable)](https://packagist.org/packages/gos/websocket-client) [![Latest Unstable Version](https://poser.pugx.org/gos/websocket-client/v/unstable)](https://packagist.org/packages/gos/websocket-client) [![Total Downloads](https://poser.pugx.org/gos/websocket-client/downloads)](https://packagist.org/packages/gos/websocket-client) [![License](https://poser.pugx.org/gos/websocket-client/license)](https://packagist.org/packages/gos/websocket-client) [![Build Status](https://travis-ci.org/GeniusesOfSymfony/WebSocketPhpClient.svg)](https://travis-ci.org/GeniusesOfSymfony/WebSocketPhpClient)
+[![Latest Stable Version](https://poser.pugx.org/gos/websocket-client/v/stable)](https://packagist.org/packages/gos/websocket-client) [![Latest Unstable Version](https://poser.pugx.org/gos/websocket-client/v/unstable)](https://packagist.org/packages/gos/websocket-client) [![Total Downloads](https://poser.pugx.org/gos/websocket-client/downloads)](https://packagist.org/packages/gos/websocket-client) [![License](https://poser.pugx.org/gos/websocket-client/license)](https://packagist.org/packages/gos/websocket-client)
 
 ## About
 
