@@ -20,14 +20,25 @@
 		"psr/log": "^1.0"
 	},
 	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^2.16.1"
+		"cboden/ratchet": "^0.4.2",
+		"friendsofphp/php-cs-fixer": "^2.16.1",
+		"phpstan/phpstan": "^0.12.14",
+		"phpstan/phpstan-phpunit": "^0.12.6",
+		"phpunit/phpunit": "^8.5|^9.0"
 	},
 	"autoload": {
-		"psr-4": { "Gos\\Component\\WebSocketClient\\": "src/" }
+		"psr-4": {
+			"Gos\\Component\\WebSocketClient\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Gos\\Component\\WebSocketClient\\Tests\\": "tests/"
+		}
 	},
 	"extra": {
 		"branch-alias": {
-		  	"dev-master": "0.3.x-dev"
+		  	"dev-master": "1.x-dev"
 		}
 	}
 }

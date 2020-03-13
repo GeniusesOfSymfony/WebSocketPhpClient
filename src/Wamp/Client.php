@@ -7,131 +7,133 @@ use Gos\Component\WebSocketClient\Exception\WebsocketException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
-/**
- * WS Client.
- *
- * @author Martin Bažík <martin@bazo.sk>
- * @author Johann Saunier <johann_27@hotmail.fr>
- */
-class Client implements LoggerAwareInterface
+final class Client implements ClientInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    /** @var string */
-    protected $endpoint;
-
-    /** @var string */
-    protected $serverHost;
-
-    /** @var int */
-    protected $serverPort;
-
-    /** @var resource */
-    protected $socket;
-
-    /** @var bool */
-    protected $connected;
-
-    /** @var string */
-    protected $sessionId;
-
-    /** @var string */
-    protected $origin;
-
-    /** @var bool */
-    protected $closing;
-
-    /** @var bool */
-    protected $secured;
-
-    /** @var string */
-    protected $target;
+    /**
+     * @var bool
+     */
+    private $connected = false;
 
     /**
-     * @param string     $host
-     * @param int|string $port
-     * @param bool       $secured
-     * @param string     $origin
+     * @var bool
      */
-    public function __construct($host, $port, $secured = false, $origin = null)
+    private $closing = false;
+
+    /**
+     * @var string
+     */
+    private $endpoint;
+
+    /**
+     * @var string|null
+     */
+    private $target;
+
+    /**
+     * @var resource|null
+     */
+    private $socket;
+
+    /**
+     * @var string|null
+     */
+    private $sessionId;
+
+    /**
+     * @var string
+     */
+    private $serverHost;
+
+    /**
+     * @var int
+     */
+    private $serverPort;
+
+    /**
+     * @var bool
+     */
+    private $secured = false;
+
+    /**
+     * @var string|null
+     */
+    private $origin;
+
+    /**
+     * @var PayloadGeneratorInterface
+     */
+    private $payloadGenerator;
+
+    public function __construct(string $host, int $port, bool $secured = false, ?string $origin = null, ?PayloadGeneratorInterface $payloadGenerator = null)
     {
         $this->serverHost = $host;
-        $this->connected = false;
-        $this->closing = false;
-        $this->secured = $secured;
         $this->serverPort = $port;
-
-        if (null === $origin) {
-            $origin = $host;
-        }
-
-        $this->origin = $origin;
-
-        $protocol = (true === $this->secured ? 'ssl' : 'tcp');
+        $this->secured = $secured;
+        $this->origin = null !== $origin ? $origin : $host;
+        $this->payloadGenerator = $payloadGenerator ?: new PayloadGenerator();
 
         $this->endpoint = sprintf(
             '%s://%s:%s',
-            $protocol,
+            $secured ? 'ssl' : 'tcp',
             $host,
             $port
         );
     }
 
     /**
-     * @param string $target
+     * @return string The session identifier for the connection
      *
-     * @return string
-     *
-     * @throws BadResponseException
-     * @throws WebsocketException
+     * @throws BadResponseException if a response could not be received from the websocket server
+     * @throws WebsocketException   if the target URI is invalid
      */
-    public function connect($target = '/')
+    public function connect(string $target = '/'): string
     {
-        $this->target = $target;
-
         if ($this->connected) {
             return $this->sessionId;
         }
 
-        $this->socket = @stream_socket_client($this->endpoint, $errno, $errstr);
+        $socket = @stream_socket_client($this->endpoint, $errno, $errstr);
 
-        if (!$this->socket) {
-            throw new BadResponseException('Could not open socket. Reason: '.$errstr);
+        if (false === $socket) {
+            throw new BadResponseException('Could not open socket. Reason: '.$errstr, $errno);
         }
 
-        $response = $this->upgradeProtocol($this->target);
+        $this->target = $target;
+        $this->socket = $socket;
 
-        $this->verifyResponse($response);
+        $this->verifyResponse($this->upgradeProtocol($this->target));
 
         $payload = json_decode($this->read());
 
-        if (Protocol::MSG_WELCOME != $payload[0]) {
-            throw new BadResponseException('WAMP Server did not send welcome message.');
+        if (false === $payload) {
+            throw new BadResponseException('WAMP Server sent an invalid payload.');
         }
 
-        $this->sessionId = $payload[1];
+        if (Protocol::MSG_WELCOME !== $payload[0]) {
+            throw new BadResponseException('WAMP Server did not send a welcome message.');
+        }
 
         $this->connected = true;
 
-        return $this->sessionId;
+        return $this->sessionId = $payload[1];
     }
 
     /**
-     * @param string $target
+     * @return string|false Response body from the request or boolean false on failure
      *
-     * @return string
-     *
-     * @throws WebsocketException
+     * @throws WebsocketException if the target URI is invalid
      */
-    protected function upgradeProtocol($target)
+    private function upgradeProtocol(string $target)
     {
         $key = $this->generateKey();
 
         if (false === strpos($target, '/')) {
-            throw new WebsocketException('Wamp Server Target is wrong.');
+            throw new WebsocketException('WAMP server target must contain a "/"');
         }
 
-        $protocol = true === $this->secured ? 'wss' : 'ws';
+        $protocol = $this->secured ? 'wss' : 'ws';
 
         $out = "GET {$protocol}://{$this->serverHost}:{$this->serverPort}{$target} HTTP/1.1\r\n";
         $out .= "Host: {$this->serverHost}:{$this->serverPort}\r\n";
@@ -150,20 +152,20 @@ class Client implements LoggerAwareInterface
     }
 
     /**
-     * @param $response
+     * @param string|false $response Response body from the upgrade request or boolean false on failure
      *
-     * @throws BadResponseException
+     * @throws BadResponseException if an invalid response was received
      */
-    protected function verifyResponse($response)
+    private function verifyResponse($response): void
     {
         if (false === $response) {
             throw new BadResponseException('WAMP Server did not respond properly');
         }
 
-        $subres = substr($response, 0, 12);
+        $responseStatus = substr($response, 0, 12);
 
-        if ('HTTP/1.1 101' != $subres) {
-            throw new BadResponseException('Unexpected Response. Expected HTTP/1.1 101 got '.$subres);
+        if ('HTTP/1.1 101' !== $responseStatus) {
+            throw new BadResponseException(sprintf('Unexpected response status. Expected "HTTP/1.1 101", got "%s".', $responseStatus));
         }
     }
 
@@ -172,104 +174,118 @@ class Client implements LoggerAwareInterface
      *
      * @see https://tools.ietf.org/html/rfc6455#section-5.2
      *
-     * @return string
+     * @throws BadResponseException if the buffer could not be read
      */
-    protected function read()
+    private function read(): string
     {
-        $stream = $this->socket;
+        $streamBody = stream_get_contents($this->socket, stream_get_meta_data($this->socket)['unread_bytes']);
 
-        $stream_meta_data = stream_get_meta_data($stream);
+        if (false === $streamBody) {
+            throw new BadResponseException('The stream buffer could not be read.');
+        }
 
-        $max_length = $stream_meta_data['unread_bytes'];
+        $startPos = strpos($streamBody, '[');
+        $endPos = strpos($streamBody, ']');
 
-        $stream_data_string = stream_get_contents($stream, $max_length);
+        if (false === $startPos || false === $endPos) {
+            throw new BadResponseException('Could not extract response body from stream.');
+        }
 
-        $startPos = strpos($stream_data_string, '[');
-
-        $endPos = strpos($stream_data_string, ']');
-
-        return substr($stream_data_string, $startPos, $endPos);
+        return substr(
+            $streamBody,
+            $startPos,
+            $endPos
+        );
     }
 
     /**
-     * Disconnect.
-     *
-     * @return bool
+     * @throws WebsocketException if the connection could not be disconnected cleanly
      */
-    public function disconnect()
+    public function disconnect(): bool
     {
         if (false === $this->connected) {
             return true;
         }
 
-        if ($this->socket) {
-            $this->send(WebsocketPayload::generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
-            $this->closing = true;
-
-            $payloadLength = \ord(fread($this->socket, 1));
-            $payload = fread($this->socket, $payloadLength);
-
-            if ($this->closing) {
-                $this->closing = false;
-            } else {
-                if ($payloadLength >= 2) {
-                    $bin = $payload[0].$payload[1];
-                    $status = bindec(sprintf('%08b%08b', \ord($payload[0]), \ord($payload[1])));
-
-                    $this->send($bin.'Close acknowledged: '.$status, WebsocketPayload::OPCODE_CLOSE);
-                }
-            }
-
-            fclose($this->socket);
-            $this->connected = false;
-
+        if (null === $this->socket) {
             return true;
         }
 
-        return false;
+        $this->send($this->payloadGenerator->generateClosePayload(), WebsocketPayload::OPCODE_CLOSE);
+
+        $firstByte = fread($this->socket, 1);
+
+        if (false === $firstByte) {
+            throw new WebsocketException('Could not extract the payload from the buffer.');
+        }
+
+        $payloadLength = \ord($firstByte);
+        $payload = fread($this->socket, $payloadLength);
+
+        if (false === $payload) {
+            throw new WebsocketException('Could not extract the payload from the buffer.');
+        }
+
+        if ($payloadLength >= 2) {
+            $bin = $payload[0].$payload[1];
+            $status = bindec(sprintf('%08b%08b', \ord($payload[0]), \ord($payload[1])));
+
+            $this->send($bin.'Close acknowledged: '.$status, WebsocketPayload::OPCODE_CLOSE);
+        }
+
+        fclose($this->socket);
+        $this->connected = false;
+
+        return true;
     }
 
     /**
-     * Send message to the websocket.
+     * @param mixed $data Any JSON encodable data
      *
-     * @param array $data
-     *
-     * @return $this|Client
+     * @throws WebsocketException if the data cannot be encoded properly
      */
-    protected function send($data, $opcode = WebsocketPayload::OPCODE_TEXT, $masked = true)
+    private function send($data, int $opcode = WebsocketPayload::OPCODE_TEXT): void
     {
-        $rawMessage = json_encode($data);
-        $payload = new WebsocketPayload();
-        $payload
-            ->setOpcode($opcode)
-            ->setMask($masked)
-            ->setPayload($rawMessage);
+        if (\is_array($data)) {
+            $payload = json_encode($data);
 
-        $encoded = $payload->encodePayload();
+            if (false === $payload) {
+                throw new WebsocketException('The data could not be encoded: '.json_last_error_msg());
+            }
+        } elseif (is_scalar($data)) {
+            $payload = $data;
+        } else {
+            throw new WebsocketException('The data must be an array or a scalar value.');
+        }
 
-        if (0 === @fwrite($this->socket, $encoded)) { //connection reseted by peers, just reconnect.
+        $encoded = $this->payloadGenerator->encode(
+            (new WebsocketPayload())
+                ->setOpcode($opcode)
+                ->setMask(0x1)
+                ->setPayload($payload)
+        );
+
+        // Check if the connection was reset, if so try to reconnect
+        if (0 === @fwrite($this->socket, $encoded)) {
             $this->connected = false;
             $this->connect($this->target);
 
             fwrite($this->socket, $encoded);
         }
-
-        return $this;
     }
 
     /**
      * Establish a prefix on server.
      *
      * @see http://wamp.ws/spec#prefix_message
-     *
-     * @param string $prefix
-     * @param string $uri
      */
-    public function prefix($prefix, $uri)
+    public function prefix(string $prefix, string $uri): void
     {
-        $type = Protocol::MSG_PREFIX;
-        $data = [$type, $prefix, $uri];
-        $this->send($data);
+        if (null !== $this->logger) {
+            $this->logger->info(sprintf('Establishing prefix "%s" for URI "%s"', $prefix, $uri));
+        }
+
+        $this->send([Protocol::MSG_PREFIX, $prefix, $uri]);
     }
 
     /**
@@ -277,18 +293,30 @@ class Client implements LoggerAwareInterface
      *
      * @see http://wamp.ws/spec#call_message
      *
-     * @param string $procURI
-     * @param mixed  $arguments
+     * @param array|mixed $args Arguments for the message either as an array or variadic set of parameters
      */
-    public function call($procUri, $arguments = [])
+    public function call(string $procUri, $args): void
     {
-        $args = \func_get_args();
-        array_shift($args);
-        $type = Protocol::MSG_CALL;
-        $callId = uniqid('', $moreEntropy = true);
-        $data = array_merge([$type, $callId, $procUri], $args);
+        if (!\is_array($args)) {
+            $args = \func_get_args();
+            array_shift($args);
+        }
 
-        $this->send($data);
+        if (null !== $this->logger) {
+            $this->logger->info(
+                sprintf('Websocket client calling %s', $procUri),
+                [
+                    'callArguments' => $args,
+                ]
+            );
+        }
+
+        $this->send(
+            array_merge(
+                [Protocol::MSG_CALL, uniqid('', true), $procUri],
+                $args
+            )
+        );
     }
 
     /**
@@ -296,58 +324,55 @@ class Client implements LoggerAwareInterface
      *
      * @see http://wamp.ws/spec#publish_message
      *
-     * @param string $topicUri
-     * @param string $payload
-     * @param string $exclude
-     * @param string $eligible
+     * @param string[] $exclude
+     * @param string[] $eligible
      */
-    public function publish($topicUri, $payload, $exclude = [], $eligible = [])
+    public function publish(string $topicUri, string $payload, array $exclude = [], array $eligible = []): void
     {
         if (null !== $this->logger) {
-            $this->logger->info(sprintf(
-                'Publish in %s',
-                $topicUri
-            ));
+            $this->logger->info(
+                sprintf('Websocket client publishing to %s', $topicUri),
+                [
+                    'payload' => $payload,
+                    'excludedIds' => $exclude,
+                    'eligibleIds' => $eligible,
+                ]
+            );
         }
 
-        $data = [Protocol::MSG_PUBLISH, $topicUri, $payload, $exclude, $eligible];
-        $this->send($data);
+        $this->send([Protocol::MSG_PUBLISH, $topicUri, $payload, $exclude, $eligible]);
     }
 
     /**
      * Subscribers receive PubSub events published by subscribers via the EVENT message. The EVENT message contains the topicURI, the topic under which the event was published, and event, the PubSub event payload.
-     *
-     * @param string $topicUri
-     * @param string $payload
      */
-    public function event($topicUri, $payload)
+    public function event(string $topicUri, string $payload): void
     {
-        $type = Protocol::MSG_EVENT;
-        $data = [$type, $topicUri, $payload];
-        $this->send($data);
+        if (null !== $this->logger) {
+            $this->logger->info(
+                sprintf('Websocket client sending event to %s', $topicUri),
+                [
+                    'payload' => $payload,
+                ]
+            );
+        }
+
+        $this->send([Protocol::MSG_EVENT, $topicUri, $payload]);
     }
 
-    /**
-     * @param int $length
-     *
-     * @return string
-     */
-    protected function generateKey($length = 16)
+    private function generateKey(int $length = 16): string
     {
         $c = 0;
         $tmp = '';
 
         while ($c++ * 16 < $length) {
-            $tmp .= md5(mt_rand(), true);
+            $tmp .= md5((string) mt_rand(), true);
         }
 
         return base64_encode(substr($tmp, 0, $length));
     }
 
-    /**
-     * @return bool
-     */
-    public function isConnected()
+    public function isConnected(): bool
     {
         return $this->connected;
     }
