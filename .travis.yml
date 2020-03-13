@@ -24,7 +24,6 @@ cache:
     - $HOME/.composer/cache
 
 before_install:
-  - phpenv config-rm xdebug.ini || true
   - |
     if [ "x$COVERAGE" == "xyes" ]; then
       pecl install pcov
