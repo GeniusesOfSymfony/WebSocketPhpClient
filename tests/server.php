@@ -7,7 +7,7 @@ use Ratchet\ConnectionInterface;
 use Ratchet\Server\EchoServer;
 use Ratchet\Wamp\WampServerInterface;
 
-$app = new App('localhost', 8000);
+$app = new App('localhost', 8888);
 $app->route(
     '/',
     new class() implements WampServerInterface {
