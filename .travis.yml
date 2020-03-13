@@ -24,6 +24,7 @@ cache:
     - $HOME/.composer/cache
 
 before_install:
+  - phpenv config-rm xdebug.ini || true
   - |
     if [ "x$COVERAGE" == "xyes" ]; then
       pecl install pcov
@@ -35,7 +36,6 @@ install:
   - composer update $COMPOSER_FLAGS
 
 script:
-  - sudo lsof -P
   - |
     if [ "x$COVERAGE" == "xyes" ]; then
        ./vendor/bin/phpunit --coverage-clover clover.xml
