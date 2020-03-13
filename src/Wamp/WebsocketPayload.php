@@ -57,7 +57,7 @@ final class WebsocketPayload
     private $maskKey;
 
     /**
-     * @var string|null
+     * @var mixed
      */
     private $payload;
 
@@ -154,14 +154,20 @@ final class WebsocketPayload
         return $this->maskKey;
     }
 
-    public function setPayload(?string $payload): self
+    /**
+     * @param mixed $payload
+     */
+    public function setPayload($payload): self
     {
         $this->payload = $payload;
 
         return $this;
     }
 
-    public function getPayload(): ?string
+    /**
+     * @return mixed
+     */
+    public function getPayload()
     {
         return $this->payload;
     }
