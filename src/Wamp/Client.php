@@ -244,10 +244,8 @@ final class Client implements ClientInterface, LoggerAwareInterface
      *
      * @throws WebsocketException if the data cannot be encoded properly
      */
-    private function send($data, int $opcode = WebsocketPayload::OPCODE_TEXT, bool $masked = true): void
+    private function send($data, int $opcode = WebsocketPayload::OPCODE_TEXT): void
     {
-        $mask = $masked ? 0x1 : 0x0;
-
         if (\is_array($data)) {
             $payload = json_encode($data);
 
@@ -263,7 +261,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $encoded = $this->payloadGenerator->encode(
             (new WebsocketPayload())
                 ->setOpcode($opcode)
-                ->setMask($mask)
+                ->setMask(0x1)
                 ->setPayload($payload)
         );
 
