@@ -2,8 +2,6 @@
 
 namespace Gos\Component\WebSocketClient\Wamp;
 
-use Gos\Component\WebSocketClient\Wamp\Client;
-use Gos\Component\WebSocketClient\Wamp\ClientInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -12,7 +10,10 @@ final class WampConnectionFactory implements WampConnectionFactoryInterface, Log
 {
     use LoggerAwareTrait;
 
-    private array $config;
+    /**
+     * @var array
+     */
+    private $config;
 
     public function __construct(array $config)
     {
