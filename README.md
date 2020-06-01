@@ -15,14 +15,44 @@ Supported functions:
 
 ## Usage
 
+### Directly Create A Client
+
+You can directly create a `Gos\Component\WebSocketClient\Wamp\ClientInterface` instance by creating a new `Gos\Component\WebSocketClient\Wamp\Client` object. The constructor has two mandatory requirements; the server host and port. You may review the [`Client class constructor`](/src/Wamp/Client.php) to see all arguments.
+
 ```php
+<?php
 use Gos\Component\WebSocketClient\Wamp\Client;
 
-$client = new Client('127.0.0.1', '8080');
+$client = new Client('127.0.0.1', 8080);
+```
+
+### Through The Factory
+
+A `Gos\Component\WebSocketClient\Wamp\ClientFactoryInterface` is available to create client instances as well. The default `Gos\Component\WebSocketClient\Wamp\ClientFactory` supports a PSR-3 logger and will automatically inject it into the client if one is present.
+
+```php
+<?php
+use Gos\Component\WebSocketClient\Wamp\ClientFactory;
+
+$factory = new ClientFactory(['host' => '127.0.0.1', 'port' => 8080]);
+$client = $factory->createConnection();
+```
+
+### Interact With Server
+
+Once you have created a client, you can connect and interact with your websocket server.
+
+```php
+<?php
+use Gos\Component\WebSocketClient\Wamp\ClientFactory;
+
+$factory = new ClientFactory(['host' => '127.0.0.1', 'port' => 8080]);
+$client = $factory->createConnection();
+
 $sessionId = $client->connect();
 
 // Establish a prefix on server
-$client->prefix("calc", "http://example.com/simple/calc#");
+$client->prefix('calc', 'http://example.com/simple/calc#');
 
 // You can send an arbitrary number of arguments
 $client->call('calc', 12, 14, 15);
@@ -35,11 +65,10 @@ $client->call('calc', $data);
 $exclude = [$sessionId]; // No sense in sending the payload to ourselves
 $eligible = []; // List of other clients ids that are eligible to receive this payload
 
-// $payload can be scalar or array
-$client->publish('topic', [], $exclude, $eligible);
+$client->publish('topic', '', $exclude, $eligible);
 
 // Publish an event
-$client->event('topic', []);
+$client->event('topic', '');
 $client->disconnect();
 ```
 
