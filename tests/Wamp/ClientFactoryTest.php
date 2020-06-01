@@ -3,12 +3,12 @@
 namespace Gos\Component\WebSocketClient\Tests\Wamp;
 
 use Gos\Component\WebSocketClient\Wamp\ClientInterface;
-use Gos\Component\WebSocketClient\Wamp\WampConnectionFactory;
+use Gos\Component\WebSocketClient\Wamp\ClientFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 
-class WampConnectionFactoryTest extends TestCase
+final class ClientFactoryTest extends TestCase
 {
     public function dataInvalidConfiguration(): \Generator
     {
@@ -53,7 +53,7 @@ class WampConnectionFactoryTest extends TestCase
      */
     public function testTheFactoryIsCreatedWithAValidConfiguration(array $config): void
     {
-        $this->assertInstanceOf(WampConnectionFactory::class, new WampConnectionFactory($config));
+        $this->assertInstanceOf(ClientFactory::class, new ClientFactory($config));
     }
 
     /**
@@ -72,7 +72,7 @@ class WampConnectionFactoryTest extends TestCase
             $this->expectExceptionMessage($exceptionMessage);
         }
 
-        $this->assertInstanceOf(WampConnectionFactory::class, new WampConnectionFactory($config));
+        $this->assertInstanceOf(ClientFactory::class, new ClientFactory($config));
     }
 
     public function testTheConnectionObjectIsCreated(): void
@@ -82,7 +82,7 @@ class WampConnectionFactoryTest extends TestCase
             'port' => 1337,
         ];
 
-        $connection = (new WampConnectionFactory($config))->createConnection();
+        $connection = (new ClientFactory($config))->createConnection();
 
         $this->assertInstanceOf(ClientInterface::class, $connection);
     }

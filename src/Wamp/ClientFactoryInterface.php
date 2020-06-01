@@ -2,7 +2,7 @@
 
 namespace Gos\Component\WebSocketClient\Wamp;
 
-interface WampConnectionFactoryInterface
+interface ClientFactoryInterface
 {
     public function createConnection(): ClientInterface;
 }

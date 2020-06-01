@@ -6,7 +6,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-final class WampConnectionFactory implements WampConnectionFactoryInterface, LoggerAwareInterface
+final class ClientFactory implements ClientFactoryInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
