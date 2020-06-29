@@ -97,6 +97,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $socket = @stream_socket_client($this->endpoint, $errno, $errstr);
 
         if (false === $socket) {
+            if (null !== $this->logger) {
+                $this->logger->error('Could not open socket.', ['errno' => $errno, 'errstr' => $errstr]);
+            }
+
             throw new BadResponseException('Could not open socket. Reason: '.$errstr, $errno);
         }
 
@@ -112,6 +116,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         }
 
         if (Protocol::MSG_WELCOME !== $payload[0]) {
+            if (null !== $this->logger) {
+                $this->logger->error('WAMP Server did not send a welcome message.', ['payload' => $payload]);
+            }
+
             throw new BadResponseException('WAMP Server did not send a welcome message.');
         }
 
@@ -130,6 +138,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $key = $this->generateKey();
 
         if (false === strpos($target, '/')) {
+            if (null !== $this->logger) {
+                $this->logger->error('Invalid target path for WAMP server.', ['target' => $target]);
+            }
+
             throw new WebsocketException('WAMP server target must contain a "/"');
         }
 
@@ -159,12 +171,20 @@ final class Client implements ClientInterface, LoggerAwareInterface
     private function verifyResponse($response): void
     {
         if (false === $response) {
+            if (null !== $this->logger) {
+                $this->logger->error('WAMP Server did not respond properly');
+            }
+
             throw new BadResponseException('WAMP Server did not respond properly');
         }
 
         $responseStatus = substr($response, 0, 12);
 
         if ('HTTP/1.1 101' !== $responseStatus) {
+            if (null !== $this->logger) {
+                $this->logger->error('Unexpected HTTP response from WAMP server.', ['response' => $response]);
+            }
+
             throw new BadResponseException(sprintf('Unexpected response status. Expected "HTTP/1.1 101", got "%s".', $responseStatus));
         }
     }
@@ -181,6 +201,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $streamBody = stream_get_contents($this->socket, stream_get_meta_data($this->socket)['unread_bytes']);
 
         if (false === $streamBody) {
+            if (null !== $this->logger) {
+                $this->logger->error('The stream buffer could not be read.', ['error' => error_get_last()]);
+            }
+
             throw new BadResponseException('The stream buffer could not be read.');
         }
 
@@ -188,6 +212,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $endPos = strpos($streamBody, ']');
 
         if (false === $startPos || false === $endPos) {
+            if (null !== $this->logger) {
+                $this->logger->error('Could not extract response body from stream.', ['body' => $streamBody]);
+            }
+
             throw new BadResponseException('Could not extract response body from stream.');
         }
 
@@ -216,6 +244,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $firstByte = fread($this->socket, 1);
 
         if (false === $firstByte) {
+            if (null !== $this->logger) {
+                $this->logger->error('Could not extract the payload from the buffer.', ['error' => error_get_last()]);
+            }
+
             throw new WebsocketException('Could not extract the payload from the buffer.');
         }
 
@@ -223,6 +255,10 @@ final class Client implements ClientInterface, LoggerAwareInterface
         $payload = fread($this->socket, $payloadLength);
 
         if (false === $payload) {
+            if (null !== $this->logger) {
+                $this->logger->error('Could not extract the payload from the buffer.', ['error' => error_get_last()]);
+            }
+
             throw new WebsocketException('Could not extract the payload from the buffer.');
         }
 
