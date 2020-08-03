@@ -36,10 +36,5 @@
 		"psr-4": {
 			"Gos\\Component\\WebSocketClient\\Tests\\": "tests/"
 		}
-	},
-	"extra": {
-		"branch-alias": {
-		  	"dev-master": "1.x-dev"
-		}
 	}
 }
