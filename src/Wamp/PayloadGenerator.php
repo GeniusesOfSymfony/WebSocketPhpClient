@@ -2,6 +2,11 @@
 
 namespace Gos\Component\WebSocketClient\Wamp;
 
+trigger_deprecation('gos/websocket-client', '1.2', 'The package is deprecated, use "ratchet/pawl" instead.');
+
+/**
+ * @deprecated the package is deprecated, use "ratchet/pawl" instead.
+ */
 final class PayloadGenerator implements PayloadGeneratorInterface
 {
     public function encode(WebsocketPayload $websocketPayload): string

@@ -7,6 +7,11 @@ use Gos\Component\WebSocketClient\Exception\WebsocketException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
+trigger_deprecation('gos/websocket-client', '1.2', 'The package is deprecated, use "ratchet/pawl" instead.');
+
+/**
+ * @deprecated the package is deprecated, use "ratchet/pawl" instead.
+ */
 final class Client implements ClientInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;

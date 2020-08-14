@@ -1,3 +1,5 @@
+**NOTE** - This repository is deprecated, future releases will only be made for critical bugs and security vulnerabilities. Use [Pawl](https://github.com/ratchetphp/Pawl) instead.
+
 WebSocketPhpClient
 ==================
 
