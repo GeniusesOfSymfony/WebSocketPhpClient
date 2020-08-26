@@ -307,7 +307,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
         );
 
         // Check if the connection was reset, if so try to reconnect
-        if (0 === @fwrite($this->socket, $encoded)) {
+        if (false === @fwrite($this->socket, $encoded)) {
             $this->connected = false;
             $this->connect($this->target);
 
