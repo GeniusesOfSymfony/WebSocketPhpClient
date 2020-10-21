@@ -23,10 +23,10 @@
 	},
 	"require-dev": {
 		"cboden/ratchet": "^0.4.2",
-		"friendsofphp/php-cs-fixer": "^2.16.1",
-		"phpstan/phpstan": "^0.12.25",
-		"phpstan/phpstan-phpunit": "^0.12.11",
-		"phpunit/phpunit": "^8.5|^9.0"
+		"friendsofphp/php-cs-fixer": "^2.16.4",
+		"phpstan/phpstan": "^0.12.50",
+		"phpstan/phpstan-phpunit": "^0.12.16",
+		"phpunit/phpunit": "^8.5 || ^9.3"
 	},
 	"autoload": {
 		"psr-4": {
