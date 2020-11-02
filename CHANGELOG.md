@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 (2020-11-02)
+
+- Allow install with PHP 8
+
 ## 1.1.1 (2020-06-29)
 
 - Added log messages for most thrown Exceptions
