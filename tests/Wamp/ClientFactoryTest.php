@@ -2,8 +2,8 @@
 
 namespace Gos\Component\WebSocketClient\Tests\Wamp;
 
-use Gos\Component\WebSocketClient\Wamp\ClientInterface;
 use Gos\Component\WebSocketClient\Wamp\ClientFactory;
+use Gos\Component\WebSocketClient\Wamp\ClientInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;

@@ -16,7 +16,7 @@ final class ClientTest extends TestCase
     protected function tearDown(): void
     {
         if (null !== $this->server) {
-            proc_terminate($this->server, SIGKILL);
+            proc_terminate($this->server, \SIGKILL);
 
             sleep(1);
         }

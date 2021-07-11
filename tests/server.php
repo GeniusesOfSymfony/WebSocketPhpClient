@@ -11,31 +11,31 @@ $app = new App('localhost', 19999);
 $app->route(
     '/',
     new class() implements WampServerInterface {
-        public function onOpen(ConnectionInterface $conn)
+        public function onOpen(ConnectionInterface $conn): void
         {
         }
 
-        public function onClose(ConnectionInterface $conn)
+        public function onClose(ConnectionInterface $conn): void
         {
         }
 
-        public function onError(ConnectionInterface $conn, \Exception $e)
+        public function onError(ConnectionInterface $conn, Exception $e): void
         {
         }
 
-        public function onCall(ConnectionInterface $conn, $id, $topic, array $params)
+        public function onCall(ConnectionInterface $conn, $id, $topic, array $params): void
         {
         }
 
-        public function onSubscribe(ConnectionInterface $conn, $topic)
+        public function onSubscribe(ConnectionInterface $conn, $topic): void
         {
         }
 
-        public function onUnSubscribe(ConnectionInterface $conn, $topic)
+        public function onUnSubscribe(ConnectionInterface $conn, $topic): void
         {
         }
 
-        public function onPublish(ConnectionInterface $conn, $topic, $event, array $exclude, array $eligible)
+        public function onPublish(ConnectionInterface $conn, $topic, $event, array $exclude, array $eligible): void
         {
         }
     }

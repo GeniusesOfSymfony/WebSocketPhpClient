@@ -1,11 +1,12 @@
 <?php
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,
-        '@PHPUnit75Migration:risky' => true,
-        'array_syntax' => ['syntax' => 'short'],
+        '@PHP71Migration' => true,
+        '@PHP71Migration:risky' => true,
+        '@PHPUnit84Migration:risky' => true,
         'blank_line_after_opening_tag' => true,
         'declare_strict_types' => false,
         'fopen_flags' => false,
@@ -14,7 +15,7 @@ return PhpCsFixer\Config::create()
     ])
     ->setRiskyAllowed(true)
     ->setFinder(
-        PhpCsFixer\Finder::create()
+        (new PhpCsFixer\Finder())
             ->in(__DIR__.'/src')
             ->in(__DIR__.'/tests')
     )

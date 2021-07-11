@@ -2,6 +2,6 @@
 composer.lock
 .phpunit.result.cache
 /phpunit.xml
-.php_cs.cache
-/.php_cs
+.php-cs-fixer.cache
+/.php-cs-fixer.php
 /.phpstan.neon
