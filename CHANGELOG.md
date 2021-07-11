@@ -3,6 +3,7 @@
 ## 1.4.0 (????-??-??)
 
 - Drop support for Symfony 3.4, 5.0, and 5.1
+- Add support for Symfony 6
 
 ## 1.3.0 (2020-11-02)
 
