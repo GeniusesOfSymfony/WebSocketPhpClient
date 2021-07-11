@@ -43,7 +43,7 @@ final class PayloadGenerator implements PayloadGeneratorInterface
         $str = '';
 
         foreach (str_split(sprintf('%016b', 1000), 8) as $binstr) {
-            $str .= \chr(bindec($binstr));
+            $str .= \chr((int) bindec($binstr));
         }
 
         return $str.'ttfn';
