@@ -25,7 +25,7 @@
 		"cboden/ratchet": "^0.4.2",
 		"phpstan/extension-installer": "^1.1",
 		"phpstan/phpstan": "^0.12.92",
-		"phpstan/phpstan-phpunit": "^0.12.20",
+		"phpstan/phpstan-phpunit": "^0.12.21",
 		"phpunit/phpunit": "^8.5 || ^9.5"
 	},
 	"autoload": {
