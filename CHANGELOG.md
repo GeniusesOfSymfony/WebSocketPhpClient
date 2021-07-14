@@ -4,6 +4,7 @@
 
 - Drop support for Symfony 3.4, 5.0, and 5.1
 - Add support for Symfony 6
+- Add support for `psr/log` 2.0 and 3.0
 
 ## 1.3.0 (2020-11-02)
 
