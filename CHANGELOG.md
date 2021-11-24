@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0 (2021-07-14)
+
+- Drop support for Symfony 5.2
+- Add support for `symfony/deprecation-contracts:^3.0`
+
 ## 1.4.0 (2021-07-14)
 
 - Drop support for Symfony 3.4, 5.0, and 5.1
