@@ -22,11 +22,6 @@ final class Client implements ClientInterface, LoggerAwareInterface
     private $connected = false;
 
     /**
-     * @var bool
-     */
-    private $closing = false;
-
-    /**
      * @var string
      */
     private $endpoint;
@@ -256,6 +251,7 @@ final class Client implements ClientInterface, LoggerAwareInterface
             throw new WebsocketException('Could not extract the payload from the buffer.');
         }
 
+        /** @phpstan-var int<0, 255> $payloadLength */
         $payloadLength = \ord($firstByte);
         $payload = fread($this->socket, $payloadLength);
 

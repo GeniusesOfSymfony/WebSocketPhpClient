@@ -24,8 +24,8 @@
 	"require-dev": {
 		"cboden/ratchet": "^0.4.3",
 		"phpstan/extension-installer": "^1.1",
-		"phpstan/phpstan": "^0.12.99",
-		"phpstan/phpstan-phpunit": "^0.12.22",
+		"phpstan/phpstan": "1.2.0",
+		"phpstan/phpstan-phpunit": "1.0.0",
 		"phpunit/phpunit": "^8.5 || ^9.5"
 	},
 	"autoload": {
